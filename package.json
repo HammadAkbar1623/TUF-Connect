@@ -1,0 +1,18 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "A cross platform app to connect universities fellows on one platform ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "MERN",
+    "backend",
+    "express",
+    "node",
+    "javascript"
+  ],
+  "author": "Hammad Khan Niazi",
+  "license": "ISC"
+}
