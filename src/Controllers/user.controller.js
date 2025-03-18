@@ -2,6 +2,9 @@ import { asyncHandler } from '../Utils/asyncHandler.js'
 import { ApiResponse } from '../Utils/apiResponse.js'
 import { ApiError } from '../Utils/apiError.js'
 import { User } from '../Models/User.model.js'
+import nodemailer from 'nodemailer'
+import { OTP } from '../Models/OTP.model.js'
+import { emailUser, emailPass } from '../../config.js'
 
 
 // Function to Register User
@@ -9,6 +12,15 @@ import { User } from '../Models/User.model.js'
 const registerUser = asyncHandler( async(req, res) => {
 
     try {
+    
+    // Email Transporter
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: emailUser,
+            pass: emailPass
+        }
+    })
 
     // Step 1: Get user details from frontend
     const { Username, Email, Password } = req.body
@@ -31,6 +43,20 @@ const registerUser = asyncHandler( async(req, res) => {
     if (existedUser) {
         throw new ApiError(409, 'Username or Email already exists');
     }
+
+    // Generating OTP
+    const otpCode = Math.floor(10000 + Math.random() * 90000).toString();
+    await OTP.create({ Email, otp: otpCode });
+    await transporter.sendMail({
+        from: emailUser,
+        to: Email,
+        subject: 'Verify OTP',
+        text: `Your OTP is: ${otpCode} `,
+    })
+
+    res.send('OTP Sent');
+
+    
 
     // Step 3: Create User object - Create entry in DB
     const RegisteredUsers = await User.create({
