@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 const UserSchema = new Schema(
   {
     Username: { type: String, required: true, unique: true },
-    Name: { type: String, required: true },
+    Name: { type: String },
     Email: { type: String, required: true, unique: true },
     Password: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
@@ -30,5 +30,4 @@ UserSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.Password);
 };
 
-const User = mongoose.model("User", UserSchema);
-export default User;
+export const User = mongoose.model("User", UserSchema);

@@ -34,7 +34,7 @@ const registerUser = asyncHandler( async(req, res) => {
 
     // Step 3: Create User object - Create entry in DB
     const RegisteredUsers = await User.create({
-        Username: Username.ToLowerCase(), Email, Password
+        Username: Username.toLowerCase(), Email, Password
     })
 
     // Step 4: Check if the user was created
