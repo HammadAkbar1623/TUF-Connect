@@ -110,7 +110,61 @@ const VerifyOtp = asyncHandler(async (req, res) => {
 });
 
 
+const CompleteProfile = asyncHandler(async (req, res) => {
+    try {
+        const { Name, Bio, Hashtags } = req.body;
+        const allowedHashtags = ["sports", "society", "fun", "study"];
+
+        // Validate hashtags
+        if (!Array.isArray(Hashtags) || Hashtags.length > 4) {
+            return res.status(400).json({
+                message: "You can only add up to 4 hashtags: sports, society, fun, study",
+            });
+        }
+
+        const invalidHashtags = Hashtags.filter(tag => !allowedHashtags.includes(tag));
+        if (invalidHashtags.length > 0) {
+            return res.status(400).json({
+                message: `Invalid hashtags: ${invalidHashtags.join(", ")}. Allowed hashtags are: sports, society, fun, study`,
+            });
+        }
+
+        // Find the most recently registered user
+        const user = await User.findOne().sort({ createdAt: -1 });
+
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+        if (!user.isVerified) {
+            throw new ApiError(403, "User is not verified. Please verify your email first.");
+        }
+
+        // Update user profile
+        user.Name = Name;
+        user.Bio = Bio;
+        user.Hashtags = Hashtags.map(tag => tag.toLowerCase());
+
+        await user.save();
+
+        return res.status(200).json({
+            message: "Profile completed successfully",
+            updatedUser: user,
+        });
+
+    } catch (error) {
+        console.error("Profile completing error:", error);
+        return res.status(error.statusCode || 500).json({
+            message: error.message || "Something went wrong while completing the profile",
+        });
+    }
+});
+
+
+
+
+
 export {
     registerUser,
-    VerifyOtp
+    VerifyOtp,
+    CompleteProfile
 }
