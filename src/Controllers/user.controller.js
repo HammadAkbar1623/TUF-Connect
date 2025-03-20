@@ -44,31 +44,33 @@ const registerUser = asyncHandler( async(req, res) => {
         throw new ApiError(409, 'Username or Email already exists');
     }
 
-    // Generating OTP
-    const otpCode = Math.floor(10000 + Math.random() * 90000).toString();
-    await OTP.create({ Email, otp: otpCode });
-    await transporter.sendMail({
-        from: emailUser,
-        to: Email,
-        subject: 'Verify OTP',
-        text: `Your OTP is: ${otpCode} `,
-    })
-
-    res.send('OTP Sent');
-
-    
-
     // Step 3: Create User object - Create entry in DB
     const RegisteredUsers = await User.create({
         Username: Username.toLowerCase(), Email, Password
     })
+
+    // Generating OTP
+    const otpCode = Math.floor(10000 + Math.random() * 90000).toString();
+    await OTP.create({ Email, otp: otpCode });
+
+    // Send OTP
+    await transporter.sendMail({
+        from: `"TUF Connect" <${emailUser}>`,
+        to: Email,
+        subject: 'Verify OTP',
+        text: `Thank you for registering on TUF connect `,
+        html: `<p>Your OTP is <strong>${otpCode}</strong></p>`,
+        replyTo: "niazihammad@gmail.com",
+    })
+
+    
 
     // Step 4: Check if the user was created
     if (!RegisteredUsers) {
         return res.status(500).json({ message: "Something went wrong while registering user"})
     }
 
-    return res.status(201).json( { message: 'User registered successfully ', RegisteredUsers})
+    return res.status(201).json( { message: 'User registered successfully '})
     } 
     
     catch (error) {
@@ -79,6 +81,36 @@ const registerUser = asyncHandler( async(req, res) => {
 
 })
 
+
+const VerifyOtp = asyncHandler(async (req, res) => {
+    const { Email, otp } = req.body;
+
+    // Find the OTP record
+    const otpRecord = await OTP.findOne({ Email, otp });
+
+    if (!otpRecord) {
+        throw new ApiError(400, 'Invalid or expired OTP');
+    }
+
+    // Mark user as verified
+    const user = await User.findOneAndUpdate(
+        { Email },
+        { isVerified: true },
+        { new: true }
+    );
+
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
+    // Optionally delete OTP after verification
+    await OTP.deleteOne({ Email });
+
+    res.status(200).json({ message: 'OTP verified successfully' });
+});
+
+
 export {
-    registerUser
+    registerUser,
+    VerifyOtp
 }
