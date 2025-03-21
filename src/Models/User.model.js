@@ -13,6 +13,7 @@ const UserSchema = new Schema(
     ProfilePic: { type: String },
     Hashtags: { type: [String] },
     DeviceToken: { type: String }, // For FCM notifications (optional)
+    
   },
   { timestamps: true }
 );
