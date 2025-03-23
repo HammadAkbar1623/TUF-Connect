@@ -236,10 +236,16 @@ const ChangeCurrentPassword = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Old password is incorrect");
     }
 
+    if (!newPassword.trim() || !confirmPassword.trim()) {
+        throw new ApiError(400, "New password cannot be empty or contain only spaces");
+    }
+    
+
     // Check if the new password matches the confirmation password
     if (newPassword !== confirmPassword) {
         throw new ApiError(400, "New passwords do not match");
     }
+    
 
     // Update the password and invalidate the refresh token (security measure)
     user.Password = newPassword;  // Update password (ensure it's hashed)
