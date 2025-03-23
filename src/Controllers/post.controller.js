@@ -27,10 +27,25 @@ const createPost = asyncHandler(async (req, res) => {
             postedBy: userId,
         });
 
+
+        // Deleting post after one hour
+        setTimeout(async () => {
+            try {
+                await Post.deleteOne({ _id: newPost._id });
+                console.log(`Post with ID ${newPost._id} deleted after 1 hour`);
+            } catch (error) {
+                console.error(`Failed to delete post: ${error.message}`);
+            }
+        }, 3600000);
+        
+        
+
         return res.status(201).json({
             message: "Post created successfully",
             post: newPost,
         });
+
+        
 
     } catch (error) {
         console.error("Error while creating post:", error);
