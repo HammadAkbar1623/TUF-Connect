@@ -27,6 +27,21 @@ const createPost = asyncHandler(async (req, res) => {
             postedBy: userId,
         });
 
+        const usersToNotify = await User.find({ hashtags: { $in: Hashtags } });
+
+        // Save notifications in DB and send them in real time
+    await Promise.all(
+        usersToNotify.map(async (user) => {
+            const notification = await Notification.create({
+                userId: user._id,
+                message: `New post related to your interests: ${Hashtags.join(", ")}`,
+            });
+
+            // Emit real-time notification to connected users
+            io.to(user._id.toString()).emit("newNotification", notification);
+        })
+    );
+
 
         // Deleting post after one hour
         setTimeout(async () => {
@@ -41,7 +56,7 @@ const createPost = asyncHandler(async (req, res) => {
         
 
         return res.status(201).json({
-            message: "Post created successfully",
+            message: "Post created successfully and notification sent",
             post: newPost,
         });
 
