@@ -5,7 +5,7 @@ const postSchema = new Schema(
     {
         content: String,
         hashtags: [String],
-        postedBy: { type: mongoose.Schema.Types.ObjectId, ref: User },
+        postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         createdAt: { type: Date, default: Date.now }
     }
 )
