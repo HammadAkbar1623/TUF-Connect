@@ -5,7 +5,6 @@ import { User } from '../Models/User.model.js'
 import nodemailer from 'nodemailer'
 import { OTP } from '../Models/OTP.model.js'
 import { emailUser, emailPass } from '../../config.js'
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 
@@ -120,8 +119,15 @@ const VerifyOtp = asyncHandler(async (req, res) => {
 
 const CompleteProfile = asyncHandler(async (req, res) => {
     try {
+
+        const userId = req.user?._id; // Get logged-in user ID
+        const user = await User.findById(userId); // Fetch user from DB
+
+        if (!user || !user.isVerified) { 
+            return res.status(400).json({ message: 'Please complete your registration before posting.' });
+        }
         const { Name, Bio, Hashtags } = req.body;
-        const allowedHashtags = ["sports", "society", "fun", "study"];
+        const allowedHashtags = ["sports", "society", "fun", "study", "gaming"];
 
         // Validate hashtags with case normalization
         if (!Array.isArray(Hashtags) || Hashtags.length > 4) {
@@ -137,9 +143,7 @@ const CompleteProfile = asyncHandler(async (req, res) => {
             });
         }
 
-        // Find the authenticated user
-        const userId = req.user?._id; 
-        const user = await User.findById(userId);
+        
 
         if (!user) {
             throw new ApiError(404, "User not found");
@@ -161,7 +165,6 @@ const CompleteProfile = asyncHandler(async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Profile completing error:", error);
         return res.status(error.statusCode || 500).json({
             message: error.message || "Something went wrong while completing the profile",
         });
@@ -171,28 +174,39 @@ const CompleteProfile = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler( async(req, res) => {
     try {
+
         const { Email, Password } = req.body; // Be consistent with field names
+
+
         const user = await User.findOne({ Email });
-        if (!user) return res.status(401).json({ message: 'User not found' });
+        if (!user) {
+            return res.status(401).json({ message: 'User not found' });
+        }
+
+        // Check if user is verified
+        if (!user.isVerified) {
+            return res.status(400).json({ message: 'Please complete your registration' });
+        }
 
         // Check password
         const isPasswordValid = await user.isPasswordCorrect(Password)
         if(!isPasswordValid){
-        throw new ApiError(404, "Invalid user credentials")
+        return res.status(404).json({ message: 'Invalid User credentials'})
     }
 
-
         // Generate a token upon successful login
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-            expiresIn: '1h', // Token expiration time
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+            expiresIn: '1h',
         });
+        
 
         res.status(200).json({ token, message: 'Login successful' });
     } 
     
     catch (error) {
-        console.error("Login Error:", error); // Log the error to see what's happening
-        res.status(500).json({ message: 'Server error', error: error.message || error });
+        res.status(500).json({ message: 'Server error', 
+            error: error.message, 
+             });
     }
     
 })
@@ -260,7 +274,14 @@ const ChangeCurrentPassword = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, {}, "Password changed successfully. Please log in again."));
 });
 
-
+const getUserProfile = asyncHandler(async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        res.status(200).json(user);
+      } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch profile', error });
+      }
+})
 
 export {
     registerUser,
@@ -268,5 +289,6 @@ export {
     CompleteProfile,
     loginUser,
     logOutUser,
-    ChangeCurrentPassword
+    ChangeCurrentPassword,
+    getUserProfile
 }
