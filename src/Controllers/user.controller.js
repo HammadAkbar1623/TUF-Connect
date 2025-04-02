@@ -7,6 +7,9 @@ import { OTP } from '../Models/OTP.model.js'
 import { emailUser, emailPass } from '../../config.js'
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { UploadOnCloudinary } from '../Utils/cloudinary.js'
+
+
 
 const generateAccessAndRefreshTokens = async(userId) => {
     try{
@@ -143,19 +146,29 @@ const CompleteProfile = asyncHandler(async (req, res) => {
             });
         }
 
-        
+        // Check for Profile Pic
+        let profilePicUrl = user.profile; // Default to existing profile pic
+        if (req.files?.ProfilePic?.length > 0) {
+            const ProfilePicLocalPath = req.files.ProfilePic[0].path;
 
-        if (!user) {
-            throw new ApiError(404, "User not found");
+        // Upload the Profile Pic on Cloudinary
+        const profileUploadResult = await UploadOnCloudinary(ProfilePicLocalPath);
+
+        if (!profileUploadResult || !profileUploadResult.url) {
+            return res.status(500).json({ message: "Failed to upload profile picture" });
         }
-        if (!user.isVerified) {
-            throw new ApiError(403, "User is not verified. Please verify your email first.");
-        }
+
+        profilePicUrl = profileUploadResult.url;
+    }
+
+
 
         // Update user profile
         user.Name = Name;
         user.Bio = Bio;
         user.Hashtags = Hashtags.map(tag => tag.toLowerCase());
+        user.profile = profilePicUrl;
+
 
         await user.save();
 
@@ -164,7 +177,9 @@ const CompleteProfile = asyncHandler(async (req, res) => {
             updatedUser: user,
         });
 
-    } catch (error) {
+    } 
+    
+    catch (error) {
         return res.status(error.statusCode || 500).json({
             message: error.message || "Something went wrong while completing the profile",
         });
