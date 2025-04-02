@@ -122,15 +122,15 @@ const VerifyOtp = asyncHandler(async (req, res) => {
 
 const CompleteProfile = asyncHandler(async (req, res) => {
     try {
-
         const userId = req.user?._id; // Get logged-in user ID
         const user = await User.findById(userId); // Fetch user from DB
 
         if (!user || !user.isVerified) { 
             return res.status(400).json({ message: 'Please complete your registration before posting.' });
         }
+
         const { Name, Bio, Hashtags } = req.body;
-        const allowedHashtags = ["sports", "society", "fun", "study", "gaming"];
+        const allowedHashtags = ["sports", "society", "fun", "study"];
 
         // Validate hashtags with case normalization
         if (!Array.isArray(Hashtags) || Hashtags.length > 4) {
@@ -147,28 +147,25 @@ const CompleteProfile = asyncHandler(async (req, res) => {
         }
 
         // Check for Profile Pic
-        let profilePicUrl = user.profile; // Default to existing profile pic
-        if (req.files?.ProfilePic?.length > 0) {
-            const ProfilePicLocalPath = req.files.ProfilePic[0].path;
+        let profilePicUrl = user.ProfilePic; // Default to existing profile pic
+        if (req.file) {  // Changed from req.files to req.file for single file
+            const ProfilePicLocalPath = req.file.path;  // Single file, no array
 
-        // Upload the Profile Pic on Cloudinary
-        const profileUploadResult = await UploadOnCloudinary(ProfilePicLocalPath);
+            // Upload the Profile Pic on Cloudinary
+            const profileUploadResult = await UploadOnCloudinary(ProfilePicLocalPath);
 
-        if (!profileUploadResult || !profileUploadResult.url) {
-            return res.status(500).json({ message: "Failed to upload profile picture" });
+            if (!profileUploadResult || !profileUploadResult.url) {
+                return res.status(500).json({ message: "Failed to upload profile picture" });
+            }
+
+            profilePicUrl = profileUploadResult.secure_url;
         }
-
-        profilePicUrl = profileUploadResult.url;
-    }
-
-
 
         // Update user profile
         user.Name = Name;
         user.Bio = Bio;
         user.Hashtags = Hashtags.map(tag => tag.toLowerCase());
-        user.profile = profilePicUrl;
-
+        user.ProfilePic = profilePicUrl;
 
         await user.save();
 
@@ -177,14 +174,13 @@ const CompleteProfile = asyncHandler(async (req, res) => {
             updatedUser: user,
         });
 
-    } 
-    
-    catch (error) {
+    } catch (error) {
         return res.status(error.statusCode || 500).json({
             message: error.message || "Something went wrong while completing the profile",
         });
     }
 });
+
 
 
 const loginUser = asyncHandler( async(req, res) => {

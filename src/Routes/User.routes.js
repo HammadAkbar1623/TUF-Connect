@@ -10,11 +10,16 @@ import { ChangeCurrentPassword } from '../Controllers/user.controller.js';
 import { showAllPosts } from '../Controllers/post.controller.js';
 import { getUserProfile } from '../Controllers/user.controller.js';
 import { deletePost } from '../Controllers/post.controller.js';
+import {upload} from '../middlewares/multer.middleware.js'
 
 const router = Router();
 router.post("/register", registerUser);
 router.post("/verifyOtp",  VerifyOtp);
-router.post("/completeProfile", authenticateUser, CompleteProfile);
+
+router.route("/completeProfile").post(
+    authenticateUser,
+    upload.single("ProfilePic"), CompleteProfile);
+
 router.post("/createPost", authenticateUser, createPost);
 router.get("/showPosts", authenticateUser, showAllPosts);
 router.delete("/deletePost/:id", authenticateUser, deletePost);
