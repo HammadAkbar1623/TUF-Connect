@@ -5,8 +5,15 @@ import { asyncHandler } from "../Utils/asyncHandler.js";
 
 const createPost = asyncHandler(async (req, res) => {
     try {
+
+        const userId = req.user?._id; // Get logged-in user ID
+        const user = await User.findById(userId); // Fetch user from DB
+
+        if (!user || !user.isVerified) { 
+            return res.status(400).json({ message: 'Please complete your registration before posting.' });
+        }
+
         const { Content, Hashtags } = req.body;
-        const userId = req.user?._id; // Assuming `req.user` is set after user authentication middleware
         const allowedHashtags = ["sports", "society", "fun", "study"]; // Allowed hashtags
 
         // Validation: Ensure content and hashtags are provided
@@ -26,6 +33,8 @@ const createPost = asyncHandler(async (req, res) => {
             hashtags: validHashtags.map(tag => tag.toLowerCase()), // Store hashtags in lowercase
             postedBy: userId,
         });
+        
+
 
         const usersToNotify = await User.find({ hashtags: { $in: Hashtags } });
 
@@ -70,4 +79,61 @@ const createPost = asyncHandler(async (req, res) => {
     }
 });
 
-export { createPost };
+const showAllPosts = asyncHandler(async (req, res) => {
+    try {
+        
+        const userId = req.user?._id; // Get logged-in user ID
+        const user = await User.findById(userId); // Fetch user from DB
+
+        if (!user || !user.isVerified) { 
+            return res.status(400).json({ message: 'Please complete your registration before posting.' });
+        }
+        
+        // To get the name of person who posted
+        const posts = await Post.find().populate({ path: "postedBy", select: "Name ProfilePic" }); 
+
+        
+        res.status(200).json(posts);
+    } 
+    
+    catch (error) {
+        console.error(error); 
+        res.status(500).json({ message: "Failed to fetch posts", error: error.message });
+    }
+});
+
+
+// Controller to delete Post
+const deletePost = asyncHandler(async (req, res) => {
+    try {
+        const postId = req.params.id; // Get the post ID from the request URL
+        const userId = req.user?._id; // Get the authenticated user's ID
+
+        // Find the post by ID
+        const post = await Post.findById(postId);
+        if (!post) {
+            throw new ApiError(404, "Post not found.");
+        }
+
+        // Check if the logged-in user is the owner of the post
+        if (post.postedBy.toString() !== userId.toString()) {
+            throw new ApiError(403, "You are not authorized to delete this post.");
+        }
+
+        // Delete the post
+        await Post.deleteOne({ _id: postId });
+
+        return res.status(200).json({ message: "Post deleted successfully." });
+    } catch (error) {
+        console.error("Error while deleting post:", error);
+        return res.status(error.statusCode || 500).json({
+            message: error.message || "Something went wrong while deleting the post.",
+        });
+    }
+});
+
+
+export { createPost,
+        showAllPosts,
+        deletePost
+ };
