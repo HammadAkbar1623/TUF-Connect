@@ -16,7 +16,8 @@ export const authenticateUser = asyncHandler(async (req, res, next) => {
         req.user = await User.findById(decoded.id).select("-password");
         if (!req.user) throw new ApiError(404, "User not found.");
         next();
-    } catch (error) {
+    } 
+    catch (error) {
         throw new ApiError(401, "Invalid authentication token.");
     }
 });
