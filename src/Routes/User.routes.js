@@ -41,5 +41,4 @@ router.patch('/updateHashtags', authenticateUser, UpdateHashtags);
 router.patch('/updateProfilePic', authenticateUser, upload.single("profilePic"), UpdateProfilePic);
 
 
-
 export default router;
