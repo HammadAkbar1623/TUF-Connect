@@ -1,4 +1,4 @@
-import User from '../Models/User.model.js';
+import {User} from '../Models/User.model.js';
 
 const checkProfileComplete = async (req, res, next) => {
     const user = await User.findById(req.user.id);
