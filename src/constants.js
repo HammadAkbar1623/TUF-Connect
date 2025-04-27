@@ -1,1 +1,1 @@
-export const dbName = 'connecttuf';
+export const dbName = 'connecttuf'
