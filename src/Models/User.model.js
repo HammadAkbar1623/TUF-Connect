@@ -18,6 +18,10 @@ const UserSchema = new Schema(
       default: [],
       enum: ["sports", "society", "fun", "study"], 
     },
+    isProfileComplete: {
+      type: Boolean,
+      default: false
+    }
   },
 
 

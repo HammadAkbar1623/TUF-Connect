@@ -180,6 +180,7 @@ const CompleteProfile = asyncHandler(async (req, res) => {
     user.Bio = Bio;
     user.Hashtags = Hashtags.map((tag) => tag.toLowerCase());
     user.ProfilePic = profilePicUrl;
+    user.isProfileComplete = true; // Mark profile as complete
 
     await user.save();
 
@@ -222,7 +223,7 @@ const loginUser = asyncHandler(async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.status(200).json({ token, message: "Login successful" });
+    res.status(200).json({ token, isProfileComplete: user.isProfileComplete, message: "Login successful" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

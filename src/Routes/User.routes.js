@@ -17,6 +17,8 @@ import { UpdateName } from '../Controllers/user.controller.js';
 import { UpdateBio } from '../Controllers/user.controller.js';
 import { UpdateHashtags } from '../Controllers/user.controller.js';
 import { UpdateProfilePic } from '../Controllers/user.controller.js';
+import checkProfileComplete from '../Middlewares/checkProfile.middleware.js';
+
 
 const router = Router();
 router.post("/register", registerUser);
@@ -26,8 +28,8 @@ router.route("/completeProfile").post(
     authenticateUser,
     upload.single("ProfilePic"), CompleteProfile);
 
-router.post("/createPost", authenticateUser, createPost);
-router.get("/showPosts", authenticateUser, showAllPosts);
+router.post("/createPost", authenticateUser, checkProfileComplete, createPost);
+router.get("/showPosts", authenticateUser, checkProfileComplete, showAllPosts);
 router.delete("/deletePost/:id", authenticateUser, deletePost);
 router.post("/login", loginUser);
 router.get('/profile', authenticateUser, getUserProfile);   // Seeing your own profile
@@ -39,6 +41,7 @@ router.patch('/updateName', authenticateUser, UpdateName);
 router.patch('/updateBio', authenticateUser, UpdateBio);
 router.patch('/updateHashtags', authenticateUser, UpdateHashtags);
 router.patch('/updateProfilePic', authenticateUser, upload.single("profilePic"), UpdateProfilePic);
+
 
 
 export default router;
