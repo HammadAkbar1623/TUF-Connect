@@ -96,7 +96,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   try {
     await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log("OTP email sent:", response);
+    console.log("OTP email sent:");
   } 
   catch (error) {
     console.error("Brevo API Error Details:", error.response?.body || error.message);
