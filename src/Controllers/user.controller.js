@@ -8,6 +8,7 @@ import { emailUser, emailPass } from "../../config.js";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { UploadOnCloudinary } from "../Utils/cloudinary.js";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -71,16 +72,15 @@ const registerUser = asyncHandler(async (req, res) => {
     expiresAt: Date.now() + 10 * 60 * 1000,
   }); // Expires in 10 mins
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: emailUser, pass: emailPass },
-  });
+  const apikey = process.env.BREVO_API_KEY;
+  SibApiV3Sdk.ApiClient.instance.authentications["api-key"].apiKey = apikey;
+  const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-  await transporter.sendMail({
-  from: `"TUF Connect" <${emailUser}>`,
-  to: Email,
-  subject: "Your TUF Connect OTP Code",
-  html: `
+  const msg = {
+    from: `"TUF Connect" <${emailUser}>`,
+    to: Email,
+    subject: "Your TUF Connect OTP Code",
+    html: `
     <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
       <h2 style="color: #4A90E2;">TUF Connect</h2>
       <p>Asalamo Alikum,</p>
@@ -96,8 +96,42 @@ const registerUser = asyncHandler(async (req, res) => {
       <small style="color: #888;">Mujhe Attitude dekhao aur iss email ka reply na krna.</small>
     </div>
   `,
-});
+  };
 
+  try {
+    const response = await apiInstance.sendTransacEmail(msg);
+    console.log("OTP email sent:", response);
+  } 
+  catch (error) {
+    console.error("Error sending OTP email:", error);
+  }
+
+  // const transporter = nodemailer.createTransport({
+  //   service: "gmail",
+  //   auth: { user: emailUser, pass: emailPass },
+  // });
+
+  // await transporter.sendMail({
+  //   from: `"TUF Connect" <${emailUser}>`,
+  //   to: Email,
+  //   subject: "Your TUF Connect OTP Code",
+  //   html: `
+  //   <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+  //     <h2 style="color: #4A90E2;">TUF Connect</h2>
+  //     <p>Asalamo Alikum,</p>
+  //     <p>Thank you for signing up! Please use the OTP code below to verify your email address:</p>
+  //     <p style="font-size: 24px; font-weight: bold; background-color: #f0f0f0; padding: 10px; display: inline-block; border-radius: 5px;">
+  //       ${otpCode}
+  //     </p>
+  //     <p>This code is valid for the next 10 minutes.</p>
+  //     <br>
+  //     <p>Best regards,</p>
+  //     <p>The TUF Connect Team</p>
+  //     <hr style="margin-top: 30px;">
+  //     <small style="color: #888;">Mujhe Attitude dekhao aur iss email ka reply na krna.</small>
+  //   </div>
+  // `,
+  // });
 
   res
     .status(201)
@@ -239,7 +273,11 @@ const loginUser = asyncHandler(async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.status(200).json({ token, isProfileComplete: user.isProfileComplete, message: "Login successful" });
+    res.status(200).json({
+      token,
+      isProfileComplete: user.isProfileComplete,
+      message: "Login successful",
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -444,19 +482,15 @@ const UpdateBio = asyncHandler(async (req, res) => {
     }
     user.Bio = Bio; // Update the user's bio
     await user.save(); // Save the changes to the database
-    res
-      .status(200)
-      .json({
-        message: "Bio updated successfully",
-        updatedUser: { _id: user._id, Bio: user.Bio, Username: user.Username },
-      });
+    res.status(200).json({
+      message: "Bio updated successfully",
+      updatedUser: { _id: user._id, Bio: user.Bio, Username: user.Username },
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Something went wrong while updating the bio",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Something went wrong while updating the bio",
+      error: error.message,
+    });
   }
 });
 
@@ -478,13 +512,13 @@ const UpdateHashtags = asyncHandler(async (req, res) => {
   }
   const userId = req.user._id; // Get the logged-in user's ID
 
-   // Find the user by ID
+  // Find the user by ID
   const user = await User.findByIdAndUpdate(
     userId,
     { Hashtags },
     { new: true, runValidators: true }
   );
- 
+
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
@@ -529,14 +563,13 @@ const UpdateProfilePic = asyncHandler(async (req, res) => {
       message: "Profile picture updated successfully",
       updatedUser: user,
     });
-  } 
-  catch (error) {
+  } catch (error) {
     return res.status(error.statusCode || 500).json({
       message:
         error.message || "Something went wrong while updating the profile pic",
     });
   }
-})
+});
 
 export {
   registerUser,
