@@ -76,6 +76,10 @@ const registerUser = asyncHandler(async (req, res) => {
   SibApiV3Sdk.ApiClient.instance.authentications["api-key"].apiKey = apikey;
   const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
+  if (!apikey) {
+    throw new ApiError(500, "Brevo API key is missing.");
+  }
+
   const msg = {
     from: `"TUF Connect" <${emailUser}>`,
     to: Email,
@@ -103,12 +107,10 @@ const registerUser = asyncHandler(async (req, res) => {
     console.log("OTP email sent:", response);
   } 
   catch (error) {
-    console.error("Error sending OTP email:", error);
-    // Delete the user and OTP to avoid orphaned records
+    console.error("Brevo API Error Details:", error.response?.body || error.message);
     await User.deleteOne({ Email });
     await OTP.deleteOne({ Email });
-    // Throw an error to terminate the request
-    throw new ApiError(500, "Failed to send OTP email. Please try again.");
+    throw new ApiError(500, "Failed to send OTP. Please try again later.");
   }
 
   res
