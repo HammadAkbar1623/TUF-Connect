@@ -104,34 +104,12 @@ const registerUser = asyncHandler(async (req, res) => {
   } 
   catch (error) {
     console.error("Error sending OTP email:", error);
+    // Delete the user and OTP to avoid orphaned records
+    await User.deleteOne({ Email });
+    await OTP.deleteOne({ Email });
+    // Throw an error to terminate the request
+    throw new ApiError(500, "Failed to send OTP email. Please try again.");
   }
-
-  // const transporter = nodemailer.createTransport({
-  //   service: "gmail",
-  //   auth: { user: emailUser, pass: emailPass },
-  // });
-
-  // await transporter.sendMail({
-  //   from: `"TUF Connect" <${emailUser}>`,
-  //   to: Email,
-  //   subject: "Your TUF Connect OTP Code",
-  //   html: `
-  //   <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-  //     <h2 style="color: #4A90E2;">TUF Connect</h2>
-  //     <p>Asalamo Alikum,</p>
-  //     <p>Thank you for signing up! Please use the OTP code below to verify your email address:</p>
-  //     <p style="font-size: 24px; font-weight: bold; background-color: #f0f0f0; padding: 10px; display: inline-block; border-radius: 5px;">
-  //       ${otpCode}
-  //     </p>
-  //     <p>This code is valid for the next 10 minutes.</p>
-  //     <br>
-  //     <p>Best regards,</p>
-  //     <p>The TUF Connect Team</p>
-  //     <hr style="margin-top: 30px;">
-  //     <small style="color: #888;">Mujhe Attitude dekhao aur iss email ka reply na krna.</small>
-  //   </div>
-  // `,
-  // });
 
   res
     .status(201)
