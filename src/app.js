@@ -5,9 +5,10 @@ const app = express();
 
 
 app.use(cors({
-    origin: '*',
-    credentials: true
-}));
+    origin: process.env.CLIENT_URL || 'http://localhost:8081',
+    credentials: true,
+    methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS']
+  }));
 
 app.use(express.json())
 
