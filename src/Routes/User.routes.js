@@ -35,7 +35,7 @@ router.post("/login", loginUser);
 router.get('/profile', authenticateUser, getUserProfile);   // Seeing your own profile
 router.get('/:userId', getPublicUserProfile);  // Seeing the profile of user who posted
 router.delete("/logout", authenticateUser, logOutUser);
-router.post("/changePassword", authenticateUser, ChangeCurrentPassword);
+router.patch("/changePassword", authenticateUser, ChangeCurrentPassword);
 router.patch('/updateUserName', authenticateUser, UpdateUserName);
 router.patch('/updateName', authenticateUser, UpdateName);
 router.patch('/updateBio', authenticateUser, UpdateBio);
