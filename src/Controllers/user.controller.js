@@ -158,12 +158,12 @@ const CompleteProfile = asyncHandler(async (req, res) => {
     }
 
     const { Name, Bio, Hashtags } = req.body;
-    const allowedHashtags = ["sports", "society", "fun", "study"];
+    const allowedHashtags = ["sports", "society", "fun", "study", "seminar", "volunteer", "gossip"];
     // Validate hashtags with case normalization
-    if (!Array.isArray(Hashtags) || Hashtags.length > 4) {
+    if (!Array.isArray(Hashtags) || Hashtags.length > 7) {
       return res.status(400).json({
         message:
-          "You can only add up to 4 hashtags: sports, society, fun, study",
+          "You can only add up to 7 hashtags",
       });
     }
 
@@ -174,7 +174,7 @@ const CompleteProfile = asyncHandler(async (req, res) => {
       return res.status(400).json({
         message: `Invalid hashtags: ${invalidHashtags.join(
           ", "
-        )}. Allowed hashtags are: sports, society, fun, study`,
+        )}. Allowed hashtags are: sports, society, fun, study, seminar, volunteer, gossip`,
       });
     }
 
