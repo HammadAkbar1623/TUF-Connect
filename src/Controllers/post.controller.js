@@ -129,33 +129,39 @@ const LikePost = asyncHandler(async (req, res) => {
     const postId = req.params._id;
     const userId = req.user?._id;
 
-    const post = await Post.findById(postId);
-    if (!post) {
-      throw new ApiError(404, "Post not found.");
+    // Add validation
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
     }
 
-    const alreadyLiked = post.likes.includes(userId);
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
 
-    if (alreadyLiked) {
+    const likeIndex = post.likes.indexOf(userId);
+    
+    if (likeIndex > -1) {
       // Unlike
-      post.likes.pull(userId);
-      await post.save();
-      return res.status(200).json({ message: "Post unliked." });
+      post.likes.splice(likeIndex, 1);
     } else {
       // Like
       post.likes.push(userId);
-      await post.save();
-      res.status(200).json({
-        message: alreadyLiked ? "Post unliked" : "Post liked",
-        post: updatedPost
-      });
-      
     }
-  } 
-  catch (error) {
-    console.error("Error while liking post:", error);
-    return res.status(error.statusCode || 500).json({
-      message: error.message || "Something went wrong while liking the post.",
+
+    const updatedPost = await post.save();
+    
+    res.status(200).json({
+      success: true,
+      post: updatedPost,
+      message: likeIndex > -1 ? "Post unliked" : "Post liked"
+    });
+
+  } catch (error) {
+    console.error("Error in LikePost:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error"
     });
   }
 });
