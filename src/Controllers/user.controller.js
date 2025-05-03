@@ -473,9 +473,14 @@ const UpdateHashtags = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Hashtags are required" });
   }
   const allowedHashtags = ["sports", "society", "fun", "study", "seminar", "volunteer", "gossip"];
+  const universalHashtag = "connect";
+
   const invalidHashtags = Hashtags.filter(
-    (tag) => !allowedHashtags.includes(tag.toLowerCase())
+    (tag) => !allowedHashtags.includes(tag) && tag !== universalHashtag
   );
+
+
+
   if (invalidHashtags.length > 0) {
     return res.status(400).json({
       message: `Invalid hashtags: ${invalidHashtags.join(
@@ -495,7 +500,9 @@ const UpdateHashtags = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
-  user.Hashtags = Hashtags.map((tag) => tag.toLowerCase()); // Update the user's hashtags
+  const updatedHashtags = [...new Set([...Hashtags, universalHashtag])];
+  
+  user.Hashtags = updatedHashtags  // Update the user's hashtags
   await user.save(); // Save the changes to the user's hashtags
   res.status(200).json({ message: "Hashtags updated successfully" });
 });
