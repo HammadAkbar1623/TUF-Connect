@@ -124,4 +124,36 @@ const deletePost = asyncHandler(async (req, res) => {
   }
 });
 
-export { createPost, showAllPosts, deletePost };
+const LikePost = asyncHandler(async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user?._id;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      throw new ApiError(404, "Post not found.");
+    }
+
+    const alreadyLiked = post.likes.includes(userId);
+
+    if (alreadyLiked) {
+      // Unlike
+      post.likes.pull(userId);
+      await post.save();
+      return res.status(200).json({ message: "Post unliked." });
+    } else {
+      // Like
+      post.likes.push(userId);
+      await post.save();
+      return res.status(200).json({ message: "Post liked successfully." });
+    }
+  } catch (error) {
+    console.error("Error while liking post:", error);
+    return res.status(error.statusCode || 500).json({
+      message: error.message || "Something went wrong while liking the post.",
+    });
+  }
+});
+
+
+export { createPost, showAllPosts, deletePost, LikePost };

@@ -18,7 +18,7 @@ import { UpdateBio } from '../Controllers/user.controller.js';
 import { UpdateHashtags } from '../Controllers/user.controller.js';
 import { UpdateProfilePic } from '../Controllers/user.controller.js';
 import checkProfileComplete from '../Middlewares/checkProfile.middleware.js';
-
+import { LikePost } from '../Controllers/post.controller.js';
 
 const router = Router();
 router.post("/register", registerUser);
@@ -41,7 +41,7 @@ router.patch('/updateName', authenticateUser, UpdateName);
 router.patch('/updateBio', authenticateUser, UpdateBio);
 router.patch('/updateHashtags', authenticateUser, UpdateHashtags);
 router.patch('/updateProfilePic', authenticateUser, upload.single("profilePic"), UpdateProfilePic);
-
+router.post('/likePost/:id', authenticateUser, LikePost); // Like or unlike a post
 
 
 export default router;
