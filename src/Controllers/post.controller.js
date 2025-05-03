@@ -126,7 +126,7 @@ const deletePost = asyncHandler(async (req, res) => {
 
 const LikePost = asyncHandler(async (req, res) => {
   try {
-    const postId = req.params.id;
+    const postId = req.params._id;
     const userId = req.user?._id;
 
     const post = await Post.findById(postId);
