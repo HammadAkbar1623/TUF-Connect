@@ -196,10 +196,12 @@ const CompleteProfile = asyncHandler(async (req, res) => {
       profilePicUrl = profileUploadResult.secure_url;
     }
 
+    const userHashtags = Hashtags.map(tag => tag.toLowerCase());
+
     // Update user profile
     user.Name = Name;
     user.Bio = Bio;
-    user.Hashtags = Hashtags.map((tag) => tag.toLowerCase());
+    user.Hashtags = [...userHashtags, 'connect']; // Add Universal Hashtag
     user.ProfilePic = profilePicUrl;
     user.isProfileComplete = true; // Mark profile as complete
 
