@@ -129,40 +129,35 @@ const LikePost = asyncHandler(async (req, res) => {
     const postId = req.params._id;
     const userId = req.user?._id;
 
-    // Add validation
-    if (!userId) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
     const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
+    if (!post) return res.status(404).json({ message: "Post not found" });
 
-    const likeIndex = post.likes.indexOf(userId);
+    // Use likedBy array instead of likes
+    const likeIndex = post.likedBy.indexOf(userId);
     
     if (likeIndex > -1) {
-      // Unlike
-      post.likes.splice(likeIndex, 1);
+      post.likedBy.splice(likeIndex, 1);
     } else {
-      // Like
-      post.likes.push(userId);
+      post.likedBy.push(userId);
     }
+    
+    // Update likes count
+    post.likes = post.likedBy.length;
 
     const updatedPost = await post.save();
     
     res.status(200).json({
       success: true,
       post: updatedPost,
-      message: likeIndex > -1 ? "Post unliked" : "Post liked"
+      likes: updatedPost.likes,
+      likedBy: updatedPost.likedBy
     });
 
   } catch (error) {
-    console.error("Error in LikePost:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error"
-    });
+    console.error("Like error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
