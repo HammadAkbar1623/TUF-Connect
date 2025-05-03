@@ -156,7 +156,6 @@ const LikePost = asyncHandler(async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Like error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
