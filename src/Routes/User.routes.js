@@ -41,7 +41,7 @@ router.patch('/updateName', authenticateUser, UpdateName);
 router.patch('/updateBio', authenticateUser, UpdateBio);
 router.patch('/updateHashtags', authenticateUser, UpdateHashtags);
 router.patch('/updateProfilePic', authenticateUser, upload.single("profilePic"), UpdateProfilePic);
-router.post('/likePost/:id', authenticateUser, LikePost); // Like or unlike a post
+router.post('/likePost/:_id', authenticateUser, LikePost); // Like or unlike a post
 
 
 export default router;

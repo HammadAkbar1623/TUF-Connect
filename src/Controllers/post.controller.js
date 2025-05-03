@@ -145,9 +145,14 @@ const LikePost = asyncHandler(async (req, res) => {
       // Like
       post.likes.push(userId);
       await post.save();
-      return res.status(200).json({ message: "Post liked successfully." });
+      res.status(200).json({
+        message: alreadyLiked ? "Post unliked" : "Post liked",
+        post: updatedPost
+      });
+      
     }
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("Error while liking post:", error);
     return res.status(error.statusCode || 500).json({
       message: error.message || "Something went wrong while liking the post.",
