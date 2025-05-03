@@ -470,7 +470,7 @@ const UpdateHashtags = asyncHandler(async (req, res) => {
   if (!Hashtags || !Array.isArray(Hashtags) || Hashtags.length === 0) {
     return res.status(400).json({ message: "Hashtags are required" });
   }
-  const allowedHashtags = ["sports", "society", "fun", "study"];
+  const allowedHashtags = ["sports", "society", "fun", "study", "seminar", "volunteer", "gossip"];
   const invalidHashtags = Hashtags.filter(
     (tag) => !allowedHashtags.includes(tag.toLowerCase())
   );
@@ -478,7 +478,7 @@ const UpdateHashtags = asyncHandler(async (req, res) => {
     return res.status(400).json({
       message: `Invalid hashtags: ${invalidHashtags.join(
         ", "
-      )}. Allowed hashtags are: sports, society, fun, study`,
+      )}. Allowed hashtags are: sports, society, fun, study, seminar, volunteer, gossip`,
     });
   }
   const userId = req.user._id; // Get the logged-in user's ID

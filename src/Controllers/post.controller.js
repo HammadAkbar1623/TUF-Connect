@@ -18,7 +18,7 @@ const createPost = asyncHandler(async (req, res) => {
     }
 
     const { content, hashtags } = req.body;
-    const allowedHashtags = ["sports", "society", "fun", "study"];
+    const allowedHashtags = ["sports", "society", "fun", "study", "seminar", "volunteer", "gossip"];
 
     // Validation
     if (!content || !Array.isArray(hashtags) || hashtags.length === 0) {
