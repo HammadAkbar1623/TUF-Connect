@@ -60,7 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({
-    Username: Username.toLowerCase().trim(),
+    Username: Username.toLowerCase().replace(/\s+/g, ''), // Remove all whitespace
     Email,
     Password,
   });
