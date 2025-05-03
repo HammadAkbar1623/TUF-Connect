@@ -5,7 +5,7 @@ const app = express();
 
 
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:8081',
+    origin: '*',
     credentials: true,
     methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS']
   }));
